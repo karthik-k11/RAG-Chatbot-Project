@@ -2,9 +2,17 @@ import streamlit as st
 import os
 import tempfile
 
-# Standard imports
-from langchain.chains import RetrievalQA 
-from langchain.memory import ConversationBufferMemory
+# The langchain.chains works in streamlit
+try:
+    # Try the Standard/Cloud Import first
+    from langchain.chains import RetrievalQA
+    from langchain.memory import ConversationBufferMemory
+    print("Using Standard LangChain (Cloud Mode)")
+except ImportError:
+    # This will work locally
+    from langchain_classic.chains import RetrievalQA
+    from langchain_classic.memory import ConversationBufferMemory
+    print("Using LangChain Classic (Local Mode)")
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
