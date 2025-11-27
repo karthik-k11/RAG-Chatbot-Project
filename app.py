@@ -36,22 +36,26 @@ if "memory" not in st.session_state:
         output_key='answer'
     )
 
-#Sidebar: API Key & Upload
+# Sidebar: API Key & Upload
 with st.sidebar:
     st.header("Configuration")
     
+    # Initialize the variable to prevent NameError
+    api_key_loaded = False 
+
     # Load API Key from secrets.toml
     try:
         if "GEMINI_API_KEY" in st.secrets:
             os.environ["GOOGLE_API_KEY"] = st.secrets["GEMINI_API_KEY"]
             st.success("API Key Loaded")
+            api_key_loaded = True  # <--- Set it to True here!
         else:
             st.error("Key missing in secrets.toml")
     except FileNotFoundError:
         st.error(" .streamlit/secrets.toml not found!")
 
     st.divider()
-    st.header(" Document Management")
+    st.header("Document Management")
     uploaded_files = st.file_uploader("Upload New Documents", type=["pdf", "txt"], accept_multiple_files=True)
     process_btn = st.button("Save & Process Documents")
 
