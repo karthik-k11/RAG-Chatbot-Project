@@ -4,7 +4,7 @@ import tempfile
 
 # Standard imports
 from langchain.chains import RetrievalQA 
-from langchain_classic.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferMemory
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
