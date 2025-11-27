@@ -3,7 +3,7 @@ import os
 import tempfile
 
 # Standard imports
-from langchain_classic.chains import RetrievalQA  # <--- IT IS HERE!
+from langchain_classic.chains import RetrievalQA 
 from langchain_classic.memory import ConversationBufferMemory
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -12,11 +12,11 @@ from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 
-# --- Page Config ---
+# Page Confi
 st.set_page_config(page_title="Gemini RAG Brain", page_icon="🧠", layout="wide")
 st.title("🧠 Gemini RAG: Local Knowledge Engine")
 
-# --- Initialize Session State ---
+#Initialize Session State
 if "vectorstore" not in st.session_state:
     st.session_state.vectorstore = None
 if "messages" not in st.session_state:
