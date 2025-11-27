@@ -28,7 +28,7 @@ if "memory" not in st.session_state:
         output_key='answer'
     )
 
-# --- Sidebar: API Key & Upload ---
+#Sidebar: API Key & Upload
 with st.sidebar:
     st.header("Configuration")
     
@@ -47,7 +47,7 @@ with st.sidebar:
     uploaded_files = st.file_uploader("Upload New Documents", type=["pdf", "txt"], accept_multiple_files=True)
     process_btn = st.button("Save & Process Documents")
 
-# --- Processing Logic ---
+#Processing Logic
 if process_btn and uploaded_files:
     with st.spinner("Processing documents..."):
         all_documents = []
