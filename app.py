@@ -30,20 +30,20 @@ if "memory" not in st.session_state:
 
 # --- Sidebar: API Key & Upload ---
 with st.sidebar:
-    st.header("⚙️ Configuration")
+    st.header("Configuration")
     
     # Load API Key from secrets.toml
     try:
         if "GEMINI_API_KEY" in st.secrets:
             os.environ["GOOGLE_API_KEY"] = st.secrets["GEMINI_API_KEY"]
-            st.success("✅ API Key Loaded")
+            st.success("API Key Loaded")
         else:
-            st.error("⚠️ Key missing in secrets.toml")
+            st.error("Key missing in secrets.toml")
     except FileNotFoundError:
-        st.error("⚠️ .streamlit/secrets.toml not found!")
+        st.error(" .streamlit/secrets.toml not found!")
 
     st.divider()
-    st.header("📂 Document Management")
+    st.header(" Document Management")
     uploaded_files = st.file_uploader("Upload New Documents", type=["pdf", "txt"], accept_multiple_files=True)
     process_btn = st.button("Save & Process Documents")
 
@@ -86,7 +86,7 @@ if process_btn and uploaded_files:
             else:
                 st.session_state.vectorstore.add_documents(chunks)
                 
-            st.success(f"✅ Learned {len(chunks)} new knowledge chunks!")
+            st.success(f" Learned {len(chunks)} new knowledge chunks!")
         else:
             st.warning("No valid documents found.")
 
@@ -133,13 +133,13 @@ if st.session_state.vectorstore:
                 answer = response['result']
                 st.markdown(answer)
                 
-                with st.expander("📚 View Sources"):
+                with st.expander(" View Sources"):
                     for doc in response['source_documents']:
                         source = os.path.basename(doc.metadata.get('source', 'Unknown'))
-                        st.caption(f"📄 **Source:** {source}")
+                        st.caption(f" **Source:** {source}")
                         st.text(doc.page_content[:200] + "...")
                 
                 st.session_state.messages.append({"role": "assistant", "content": answer})
 
 else:
-    st.info("👈 Upload a document to start chatting!")
+    st.info(" Upload a document to start chatting!")
