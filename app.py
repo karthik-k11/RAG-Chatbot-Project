@@ -76,7 +76,7 @@ if process_btn and uploaded_files:
             model_name = "sentence-transformers/all-MiniLM-L6-v2"
             embedding_model = HuggingFaceEmbeddings(model_name=model_name)
             
-            # --- IN-MEMORY MODE (No persist_directory) ---
+            #IN-MEMORY MODE (No persist_directory)
             if st.session_state.vectorstore is None:
                 st.session_state.vectorstore = Chroma.from_documents(
                     chunks, 
@@ -90,7 +90,7 @@ if process_btn and uploaded_files:
         else:
             st.warning("No valid documents found.")
 
-# --- Chat Logic ---
+#Chat Logic
 if st.session_state.vectorstore:
     # Initialize LLM
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
