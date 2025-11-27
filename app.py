@@ -55,48 +55,56 @@ with st.sidebar:
     uploaded_files = st.file_uploader("Upload New Documents", type=["pdf", "txt"], accept_multiple_files=True)
     process_btn = st.button("Save & Process Documents")
 
-#Processing Logic
+# --- Processing Logic (SECURE VERSION) ---
 if process_btn and uploaded_files:
-    with st.spinner("Processing documents..."):
-        all_documents = []
-        DATA_FOLDER = './data'
-        os.makedirs(DATA_FOLDER, exist_ok=True)
+    if not api_key_loaded:
+        st.error("Please configure your API Key first!")
+    else:
+        with st.spinner("Processing documents..."):
+            all_documents = []
+            
+            # Create a TEMPORARY directory that vanishes after use
+            # This "with" block ensures auto-cleanup
+            with tempfile.TemporaryDirectory() as temp_dir:
+                for uploaded_file in uploaded_files:
+                    # Create a path in the temp folder
+                    temp_filepath = os.path.join(temp_dir, uploaded_file.name)
+                    
+                    # Save the uploaded file to that path
+                    with open(temp_filepath, "wb") as f:
+                        f.write(uploaded_file.getvalue())
+                    
+                    try:
+                        if uploaded_file.name.endswith(".pdf"):
+                            loader = PyPDFLoader(temp_filepath)
+                        else:
+                            loader = TextLoader(temp_filepath)
+                        all_documents.extend(loader.load())
+                    except Exception as e:
+                        st.error(f"Error loading {uploaded_file.name}: {e}")
+            
+            # --- Files are DELETED here automatically when we exit the block ---
 
-        for uploaded_file in uploaded_files:
-            file_path = os.path.join(DATA_FOLDER, uploaded_file.name)
-            with open(file_path, "wb") as f:
-                f.write(uploaded_file.getvalue())
-            
-            try:
-                if uploaded_file.name.endswith(".pdf"):
-                    loader = PyPDFLoader(file_path)
-                else:
-                    loader = TextLoader(file_path)
-                all_documents.extend(loader.load())
-            except Exception as e:
-                st.error(f"Error loading {uploaded_file.name}: {e}")
-
-        if all_documents:
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-            chunks = text_splitter.split_documents(all_documents)
-            
-            # Create Embeddings & Vector Store
-            model_name = "sentence-transformers/all-MiniLM-L6-v2"
-            embedding_model = HuggingFaceEmbeddings(model_name=model_name)
-            
-            #IN-MEMORY MODE (No persist_directory)
-            if st.session_state.vectorstore is None:
-                st.session_state.vectorstore = Chroma.from_documents(
-                    chunks, 
-                    embedding_model
-                    # No directory = RAM only
-                )
-            else:
-                st.session_state.vectorstore.add_documents(chunks)
+            if all_documents:
+                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+                chunks = text_splitter.split_documents(all_documents)
                 
-            st.success(f" Learned {len(chunks)} new knowledge chunks!")
-        else:
-            st.warning("No valid documents found.")
+                model_name = "sentence-transformers/all-MiniLM-L6-v2"
+                embedding_model = HuggingFaceEmbeddings(model_name=model_name)
+                
+                # Create In-Memory Vector Store (RAM Only)
+                # We do NOT pass a 'persist_directory' here
+                if st.session_state.vectorstore is None:
+                    st.session_state.vectorstore = Chroma.from_documents(
+                        chunks, 
+                        embedding_model
+                    )
+                else:
+                    st.session_state.vectorstore.add_documents(chunks)
+                    
+                st.success(f"✅ Successfully processed {len(chunks)} chunks!")
+            else:
+                st.warning("No valid text found in documents.")
 
 #Chat Logic
 if st.session_state.vectorstore:
