@@ -3,14 +3,7 @@ import os
 import tempfile
 
 #Imports
-#This import langchain.chains works in stramlit cloud
-try:
-    from langchain.chains import RetrievalQA
-    from langchain.memory import ConversationBufferMemory
-#This import langchain_classic.chains works in local vscode
-except ImportError:
-    from langchain_classic.chains import RetrievalQA
-    from langchain_classic.memory import ConversationBufferMemory
+
 
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -140,13 +133,13 @@ if st.session_state.vectorstore:
                 answer = response['result']
                 st.markdown(answer)
                 
-                with st.expander("📚 View Sources"):
+                with st.expander(" View Sources"):
                     for doc in response['source_documents']:
                         source = os.path.basename(doc.metadata.get('source', 'Unknown'))
-                        st.caption(f"📄 **Source:** {source}")
+                        st.caption(f" **Source:** {source}")
                         st.text(doc.page_content[:200] + "...")
                 
                 st.session_state.messages.append({"role": "assistant", "content": answer})
 
 else:
-    st.info("👈 Upload a document to start chatting!")
+    st.info("Upload a document to start chatting!")
