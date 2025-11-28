@@ -2,29 +2,26 @@ import streamlit as st
 import os
 import tempfile
 
-# The langchain.chains works in streamlit
+#Imports
 try:
-    # Try the Standard/Cloud Import first
     from langchain.chains import RetrievalQA
     from langchain.memory import ConversationBufferMemory
-    print("Using Standard LangChain (Cloud Mode)")
 except ImportError:
-    # This will work locally
     from langchain_classic.chains import RetrievalQA
     from langchain_classic.memory import ConversationBufferMemory
-    print("Using LangChain Classic (Local Mode)")
+
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 
-# Page Confi
+# --- Page Config ---
 st.set_page_config(page_title="Gemini RAG Brain", page_icon="🧠", layout="wide")
 st.title("🧠 Gemini RAG: Local Knowledge Engine")
 
-#Initialize Session State
+# --- Initialize Session State ---
 if "vectorstore" not in st.session_state:
     st.session_state.vectorstore = None
 if "messages" not in st.session_state:
@@ -36,30 +33,26 @@ if "memory" not in st.session_state:
         output_key='answer'
     )
 
-# Sidebar: API Key & Upload
+# --- Sidebar ---
 with st.sidebar:
     st.header("Configuration")
-    
-    # Initialize the variable to prevent NameError
-    api_key_loaded = False 
-
-    # Load API Key from secrets.toml
+    api_key_loaded = False
     try:
         if "GEMINI_API_KEY" in st.secrets:
             os.environ["GOOGLE_API_KEY"] = st.secrets["GEMINI_API_KEY"]
             st.success("API Key Loaded")
-            api_key_loaded = True  # <--- Set it to True here!
+            api_key_loaded = True
         else:
             st.error("Key missing in secrets.toml")
     except FileNotFoundError:
-        st.error(" .streamlit/secrets.toml not found!")
+        st.error(".streamlit/secrets.toml not found!")
 
     st.divider()
     st.header("Document Management")
     uploaded_files = st.file_uploader("Upload New Documents", type=["pdf", "txt"], accept_multiple_files=True)
     process_btn = st.button("Save & Process Documents")
 
-# --- Processing Logic (SECURE VERSION) ---
+# --- Processing Logic ---
 if process_btn and uploaded_files:
     if not api_key_loaded:
         st.error("Please configure your API Key first!")
@@ -67,14 +60,10 @@ if process_btn and uploaded_files:
         with st.spinner("Processing documents..."):
             all_documents = []
             
-            # Create a TEMPORARY directory that vanishes after use
-            # This "with" block ensures auto-cleanup
+            # Temporary Directory for processing
             with tempfile.TemporaryDirectory() as temp_dir:
                 for uploaded_file in uploaded_files:
-                    # Create a path in the temp folder
                     temp_filepath = os.path.join(temp_dir, uploaded_file.name)
-                    
-                    # Save the uploaded file to that path
                     with open(temp_filepath, "wb") as f:
                         f.write(uploaded_file.getvalue())
                     
@@ -86,18 +75,17 @@ if process_btn and uploaded_files:
                         all_documents.extend(loader.load())
                     except Exception as e:
                         st.error(f"Error loading {uploaded_file.name}: {e}")
-            
-            # --- Files are DELETED here automatically when we exit the block ---
 
             if all_documents:
+                # Split Text
                 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
                 chunks = text_splitter.split_documents(all_documents)
                 
+                # Create Embeddings
                 model_name = "sentence-transformers/all-MiniLM-L6-v2"
                 embedding_model = HuggingFaceEmbeddings(model_name=model_name)
                 
-                # Create In-Memory Vector Store (RAM Only)
-                # We do NOT pass a 'persist_directory' here
+                # Create Vector Store (In Memory)
                 if st.session_state.vectorstore is None:
                     st.session_state.vectorstore = Chroma.from_documents(
                         chunks, 
@@ -106,16 +94,15 @@ if process_btn and uploaded_files:
                 else:
                     st.session_state.vectorstore.add_documents(chunks)
                     
-                st.success(f"✅ Successfully processed {len(chunks)} chunks!")
+                st.success(f"✅ Learned {len(chunks)} new knowledge chunks!")
+                st.toast("Knowledge Base Updated!", icon="🧠")
             else:
                 st.warning("No valid text found in documents.")
 
-#Chat Logic
+# --- Chat Logic ---
 if st.session_state.vectorstore:
-    # Initialize LLM
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 
-    # Define Prompt
     template = """
     Use the following pieces of context to answer the question at the end.
     If you don't know the answer, just say that you don't know, don't try to make up an answer.
@@ -129,7 +116,6 @@ if st.session_state.vectorstore:
         template=template,
     )
 
-    # Standard RetrievalQA Chain
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
@@ -148,18 +134,17 @@ if st.session_state.vectorstore:
 
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                # Standard invoke
                 response = qa_chain.invoke({"query": prompt})
                 answer = response['result']
                 st.markdown(answer)
                 
-                with st.expander(" View Sources"):
+                with st.expander("📚 View Sources"):
                     for doc in response['source_documents']:
                         source = os.path.basename(doc.metadata.get('source', 'Unknown'))
-                        st.caption(f" **Source:** {source}")
+                        st.caption(f"📄 **Source:** {source}")
                         st.text(doc.page_content[:200] + "...")
                 
                 st.session_state.messages.append({"role": "assistant", "content": answer})
 
 else:
-    st.info(" Upload a document to start chatting!")
+    st.info("👈 Upload a document to start chatting!")
