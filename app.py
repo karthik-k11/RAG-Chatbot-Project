@@ -3,7 +3,14 @@ import os
 import tempfile
 
 #Imports
-
+#This import langchain.chains works in stramlit cloud
+try:
+    from langchain.chains import RetrievalQA
+    from langchain.memory import ConversationBufferMemory
+#This import langchain_classic.chains works in local vscode
+except ImportError:
+    from langchain_classic.chains import RetrievalQA
+    from langchain_classic.memory import ConversationBufferMemory
 
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
