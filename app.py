@@ -3,9 +3,11 @@ import os
 import tempfile
 
 #Imports
+#This import langchain.chains works in stramlit cloud
 try:
     from langchain.chains import RetrievalQA
     from langchain.memory import ConversationBufferMemory
+#This import langchain_classic.chains works in local vscode
 except ImportError:
     from langchain_classic.chains import RetrievalQA
     from langchain_classic.memory import ConversationBufferMemory
@@ -94,7 +96,7 @@ if process_btn and uploaded_files:
                 else:
                     st.session_state.vectorstore.add_documents(chunks)
                     
-                st.success(f"✅ Learned {len(chunks)} new knowledge chunks!")
+                st.success(f" Learned {len(chunks)} new knowledge chunks!")
                 st.toast("Knowledge Base Updated!", icon="🧠")
             else:
                 st.warning("No valid text found in documents.")
