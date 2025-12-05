@@ -38,12 +38,14 @@ source venv/bin/activate
 ```bash
 pip install streamlit langchain-google-genai langchain-community langchain-huggingface chromadb pypdf python-dotenv
 ```
-### 🔑 Configuration
+## 🔑 Configuration
+
 You need a Google API Key to access the Gemini models.
 
-Create a file named .streamlit/secrets.toml in your project root:
+### Option A: Local Development (Secrets File)
+Create a file named `.streamlit/secrets.toml` in your project root:
 
-Ini, TOML
-
-##### .streamlit/secrets.toml
+```toml
+# .streamlit/secrets.toml
 GEMINI_API_KEY = "your_google_api_key_here"
+```
