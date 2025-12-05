@@ -20,8 +20,8 @@
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/karthik-k11/RAG-Chatbot-Project.git
-cd RAG-CHATBOT-PROJECT
+git clone [https://github.com/karthik-k11/RAG-Chatbot-Project.git](https://github.com/karthik-k11/RAG-Chatbot-Project.git)
+cd RAG-Chatbot-Project
 ```
 
 ### 2. Create a Virtual Environment
