@@ -22,3 +22,11 @@
 ```bash
 git clone [https://github.com/your-username/gemini-rag-brain.git](https://github.com/your-username/gemini-rag-brain.git)
 cd gemini-rag-brain
+```
+
+### 2. Create a Virtual Environment
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# Mac/Linux
+source venv/bin/activate
