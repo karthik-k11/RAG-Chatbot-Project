@@ -42,10 +42,52 @@ pip install streamlit langchain-google-genai langchain-community langchain-huggi
 
 You need a Google API Key to access the Gemini models.
 
-### Option A: Local Development (Secrets File)
 Create a file named `.streamlit/secrets.toml` in your project root:
 
 ```toml
 # .streamlit/secrets.toml
 GEMINI_API_KEY = "your_google_api_key_here"
 ```
+## 🚀 Usage
+
+Run the Streamlit app:
+
+```bash
+streamlit run app.py
+```
+
+1. Enter API Key: If not set in secrets, the app will prompt for configuration.
+
+2. Upload Documents: Use the sidebar to upload PDFs or Text files.
+
+3. Process: Click "Process & Learn" to generate embeddings.
+
+4. Chat: Ask questions about the content of your documents!
+
+### 🧠 How It Works
+1. Ingestion: Documents are loaded and split into smaller text chunks (1000 characters).
+
+2. Embedding: Each chunk is converted into a numerical vector using HuggingFace embeddings (all-MiniLM-L6-v2).
+
+3. Storage: Vectors are stored in an in-memory Chroma vector database.
+
+4. Retrieval: When you ask a question, the system finds the most similar chunks in the database.
+
+5. Generation: The relevant chunks + your question are sent to the Gemini model, which generates a natural language response based only on the provided context.
+
+### Dependencies
+
+```streamlit```
+
+```langchain```
+
+```langchain-google-genai```
+
+```langchain-huggingface```
+
+```chromadb```
+
+```pypdf```
+
+### 🤝 Contributing
+Contributions are welcome! Please open an issue or submit a pull request for any improvements.
