@@ -20,7 +20,7 @@
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/your-username/gemini-rag-brain.git](https://github.com/your-username/gemini-rag-brain.git)
+git clone https://github.com/karthik-k11/RAG-Chatbot-Project.git
 cd gemini-rag-brain
 ```
 
