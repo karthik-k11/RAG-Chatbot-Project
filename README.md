@@ -26,7 +26,11 @@ cd gemini-rag-brain
 
 ### 2. Create a Virtual Environment
 python -m venv venv
-# Windows
+#### Windows
+```bash
 venv\Scripts\activate
-# Mac/Linux
+```
+#### Mac/Linux
+```bash
 source venv/bin/activate
+```
