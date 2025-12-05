@@ -21,11 +21,13 @@
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/karthik-k11/RAG-Chatbot-Project.git
-cd gemini-rag-brain
+cd RAG-CHATBOT-PROJECT
 ```
 
 ### 2. Create a Virtual Environment
+```bash
 python -m venv venv
+```
 #### Windows
 ```bash
 venv\Scripts\activate
