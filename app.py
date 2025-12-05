@@ -29,7 +29,7 @@ if "memory" not in st.session_state:
         output_key='answer'
     )
 
-#Sidebar
+#Sidebar for configurations
 with st.sidebar:
     st.header("Configuration")
     
