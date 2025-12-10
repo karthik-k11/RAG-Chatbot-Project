@@ -34,6 +34,10 @@ if "kb_retention_hours" not in st.session_state:
     st.session_state.kb_retention_hours = 24
 
 #Sidebar Config
+
+api_key_ok = False
+debug = False
+
 with st.sidebar:
     st.header("Configuration")
 
@@ -41,8 +45,12 @@ with st.sidebar:
     if "GEMINI_API_KEY" in st.secrets:
         os.environ["GOOGLE_API_KEY"] = st.secrets["GEMINI_API_KEY"]
         st.success("Gemini API Key Loaded")
+        api_key_ok = True
     else:
         st.error("Missing `GEMINI_API_KEY` in .streamlit/secrets.toml")
+
+    #Optional debug toggle
+    debug = st.checkbox("Show debug info", value=False)
 
     st.divider()
     st.header("Document Upload")
@@ -68,14 +76,23 @@ with st.sidebar:
             clear_vectorstore(st.session_state)
             st.success("Knowledge base deleted.")
 
+if not api_key_ok:
+    st.info("Add your Gemini API key in .streamlit/secrets.toml to start using the app.")
+    st.stop()
+
+
+
 #Auto Retention Expiry
 check_retention_expiry(st.session_state)
 
-#Processing of Documents
 if process_btn and uploaded_files:
+
     with st.spinner("Loading and processing documents..."):
+
         raw_docs = load_uploaded_files(uploaded_files)
-        st.write("DEBUG: loaded docs:", raw_docs)
+
+        if debug:
+            st.write("DEBUG: loaded docs:", raw_docs)
 
         if not raw_docs:
             st.warning("No readable text found in uploaded files.")
@@ -119,8 +136,11 @@ if prompt := st.chat_input("Ask a question..."):
 
             with st.expander("Sources"):
                 for doc in result["source_documents"]:
-                    st.caption(f"doc_id: {doc.metadata.get('doc_id', 'unknown')}")
+                    st.caption(
+                        f"{doc.metadata.get('source','unknown')} | page {doc.metadata.get('page','?')} | id: {doc.metadata.get('doc_id', 'unknown')}"
+                    )
                     st.text(doc.page_content[:200] + "...")
+
 
     st.session_state.messages.append(
         {"role": "assistant", "content": answer}
