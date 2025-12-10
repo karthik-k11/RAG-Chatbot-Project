@@ -80,8 +80,6 @@ if not api_key_ok:
     st.info("Add your Gemini API key in .streamlit/secrets.toml to start using the app.")
     st.stop()
 
-
-
 #Auto Retention Expiry
 check_retention_expiry(st.session_state)
 
