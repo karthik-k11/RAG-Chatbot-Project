@@ -1,144 +1,127 @@
 import streamlit as st
+import time
 import os
-import tempfile
-import shutil
 
-#Imports
-from langchain_classic.chains import RetrievalQA
-from langchain_classic.memory import ConversationBufferMemory
-from langchain_community.document_loaders import TextLoader, PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import PromptTemplate
+from RAG_Engine.Loaders import load_uploaded_files
+from RAG_Engine.Preprocess import sanitize_documents
+from RAG_Engine.Vectorstore import (
+    initialize_vectorstore,
+    add_documents,
+    clear_vectorstore,
+    check_retention_expiry,
+)
+from RAG_Engine.qa import build_qa_chain
 
-#Page Config
-st.set_page_config(page_title="Gemini RAG Brain", page_icon="🧠", layout="wide")
-st.title("🧠 Gemini RAG: The Conversational Knowledge Engine")
+#Stramlit Page Config
+st.set_page_config(
+    page_title="Gemini RAG Brain",
+    page_icon="🧠",
+    layout="wide"
+)
+st.title("🧠 Gemini RAG: Local Knowledge Engine")
 
-#Initialize Session State
+#Session State Init
 if "vectorstore" not in st.session_state:
     st.session_state.vectorstore = None
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "memory" not in st.session_state:
-    st.session_state.memory = ConversationBufferMemory(
-        memory_key="chat_history",
-        return_messages=True,
-        output_key='answer'
-    )
 
-#Sidebar for configurations
+if "kb_created_at" not in st.session_state:
+    st.session_state.kb_created_at = None
+
+if "kb_retention_hours" not in st.session_state:
+    st.session_state.kb_retention_hours = 24
+
+#Sidebar Config
 with st.sidebar:
     st.header("Configuration")
-    
-    api_key_loaded = False
-    try:
-        if "GEMINI_API_KEY" in os.environ:
-            api_key_loaded = True
-        # Check Secrets (for Local/Streamlit Cloud)
-        elif "GEMINI_API_KEY" in st.secrets:
-            os.environ["GOOGLE_API_KEY"] = st.secrets["GEMINI_API_KEY"]
-            api_key_loaded = True
-    except:
-        pass
 
-    if api_key_loaded:
-        st.success("API Key Loaded")
+    # Loading API key
+    if "GEMINI_API_KEY" in st.secrets:
+        os.environ["GOOGLE_API_KEY"] = st.secrets["GEMINI_API_KEY"]
+        st.success("Gemini API Key Loaded")
     else:
-        st.error("Key missing! Add to secrets.toml or environment.")
+        st.error("Missing `GEMINI_API_KEY` in .streamlit/secrets.toml")
 
     st.divider()
-    st.header("Document Management")
-    uploaded_files = st.file_uploader("Upload New Documents", type=["pdf", "txt"], accept_multiple_files=True)
-    process_btn = st.button("Process & Learn")
-
-#Processing Logic
-if process_btn and uploaded_files:
-    if not api_key_loaded:
-        st.error("Please configure your API Key first!")
-    else:
-        with st.spinner("Processing documents..."):
-            all_documents = []
-            
-            #Create a TEMPORARY directory that vanishes after use
-            with tempfile.TemporaryDirectory() as temp_dir:
-                for uploaded_file in uploaded_files:
-                    # Save to temp folder
-                    temp_filepath = os.path.join(temp_dir, uploaded_file.name)
-                    with open(temp_filepath, "wb") as f:
-                        f.write(uploaded_file.getvalue())
-                    
-                    try:
-                        if uploaded_file.name.endswith(".pdf"):
-                            loader = PyPDFLoader(temp_filepath)
-                        else:
-                            loader = TextLoader(temp_filepath)
-                        all_documents.extend(loader.load())
-                    except Exception as e:
-                        st.error(f"Error loading {uploaded_file.name}: {e}")
-                
-                #Files are AUTO-DELETED here when we exit the 'with' block
-
-            if all_documents:
-                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-                chunks = text_splitter.split_documents(all_documents)
-                
-                model_name = "sentence-transformers/all-MiniLM-L6-v2"
-                embedding_model = HuggingFaceEmbeddings(model_name=model_name)
-                
-                #Create In-Memory Vector Store
-                if st.session_state.vectorstore is None:
-                    st.session_state.vectorstore = Chroma.from_documents(
-                        chunks, 
-                        embedding_model
-                    )
-                else:
-                    st.session_state.vectorstore.add_documents(chunks)
-                    
-                st.success(f"Successfully processed {len(chunks)} chunks!")
-            else:
-                st.warning("No valid text found in documents.")
-
-#Chat Logic
-if st.session_state.vectorstore:
-    try:
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
-    except:
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
-
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
-        retriever=st.session_state.vectorstore.as_retriever(search_kwargs={"k": 3}),
-        return_source_documents=True
+    st.header("Document Upload")
+    uploaded_files = st.file_uploader(
+        "Upload PDF/TXT files",
+        type=["pdf", "txt"],
+        accept_multiple_files=True,
     )
+    process_btn = st.button("Process Documents")
 
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    st.divider()
+    st.header("Retention")
+    retention = st.number_input(
+        "KB retention (hours)",
+        min_value=1,
+        max_value=24 * 365,
+        value=st.session_state.kb_retention_hours,
+    )
+    st.session_state.kb_retention_hours = retention
 
-    if prompt := st.chat_input("Ask a question..."):
-        st.chat_message("user").markdown(prompt)
-        st.session_state.messages.append({"role": "user", "content": prompt})
+    if st.session_state.vectorstore:
+        if st.button("Delete Knowledge Base"):
+            clear_vectorstore(st.session_state)
+            st.success("Knowledge base deleted.")
 
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                try:
-                    response = qa_chain.invoke({"query": prompt})
-                    answer = response['result']
-                    st.markdown(answer)
-                    
-                    with st.expander("📚 View Sources"):
-                        for doc in response['source_documents']:
-                            source = os.path.basename(doc.metadata.get('source', 'Unknown'))
-                            st.caption(f"📄 **Source:** {source}")
-                            st.text(doc.page_content[:200] + "...")
-                    
-                    st.session_state.messages.append({"role": "assistant", "content": answer})
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
+#Auto Retention Expiry
+check_retention_expiry(st.session_state)
 
-else:
-    st.info("👈 Upload a document to start chatting!")
+#Processing of Documents
+if process_btn and uploaded_files:
+    with st.spinner("Loading and processing documents..."):
+        raw_docs = load_uploaded_files(uploaded_files)
+        st.write("DEBUG: loaded docs:", raw_docs)
+
+        if not raw_docs:
+            st.warning("No readable text found in uploaded files.")
+        else:
+            sanitized = sanitize_documents(raw_docs)
+
+            if st.session_state.vectorstore is None:
+                st.session_state.vectorstore = initialize_vectorstore(sanitized)
+                st.session_state.kb_created_at = time.time()
+            else:
+                add_documents(st.session_state.vectorstore, sanitized)
+                st.session_state.kb_created_at = time.time()
+
+            st.success(f"Indexed {len(sanitized)} sanitized knowledge chunks.")
+            st.info("Knowledge Base Updated!")
+
+#Chat Interface
+if not st.session_state.vectorstore:
+    st.info("Upload documents to start chatting!")
+    st.stop()
+
+qa_chain = build_qa_chain(st.session_state.vectorstore)
+
+#Render chat history
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+#Chat input
+if prompt := st.chat_input("Ask a question..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            result = qa_chain.invoke({"query": prompt})
+            answer = result["result"]
+            st.markdown(answer)
+
+            with st.expander("Sources"):
+                for doc in result["source_documents"]:
+                    st.caption(f"doc_id: {doc.metadata.get('doc_id', 'unknown')}")
+                    st.text(doc.page_content[:200] + "...")
+
+    st.session_state.messages.append(
+        {"role": "assistant", "content": answer}
+    )
