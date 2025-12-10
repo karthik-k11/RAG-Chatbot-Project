@@ -1,4 +1,5 @@
 import time
+import os
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from .Privacy import redact, make_doc_id
@@ -16,11 +17,20 @@ def sanitize_documents(docs):
         seed = f"{doc.metadata.get('source','')}_{now}_{i}"
         doc_id = make_doc_id(seed)
 
+        #Keep minimal, non-sensitive metadata
+        src = doc.metadata.get("source", "unknown")
+        page = doc.metadata.get("page", None)
+
         sanitized.append(
             Document(
                 page_content=clean_text,
-                metadata={"doc_id": doc_id},
+                metadata={
+                    "doc_id": doc_id,
+                    "source": os.path.basename(src) if src != "unknown" else "unknown",
+                    "page": page,
+                },
             )
         )
 
     return sanitized
+
