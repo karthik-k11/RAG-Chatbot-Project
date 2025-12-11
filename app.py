@@ -105,7 +105,6 @@ if process_btn and uploaded_files:
                 st.session_state.kb_created_at = time.time()
 
             st.success(f"Indexed {len(sanitized)} sanitized knowledge chunks.")
-            st.info("Knowledge Base Updated!")
 
 #Chat Interface
 if not st.session_state.vectorstore:
