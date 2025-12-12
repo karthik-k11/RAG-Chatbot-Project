@@ -12,7 +12,6 @@ from RAG_Engine.Vectorstore import (
 )
 from RAG_Engine.qa import build_qa_chain
 
-#Stramlit Page Config
 st.set_page_config(
     page_title="Gemini RAG Brain",
     page_icon="🧠",
@@ -20,7 +19,6 @@ st.set_page_config(
 )
 st.title("🧠 Gemini RAG: Local Knowledge Engine")
 
-#Session State Init
 if "vectorstore" not in st.session_state:
     st.session_state.vectorstore = None
 
@@ -33,15 +31,11 @@ if "kb_created_at" not in st.session_state:
 if "kb_retention_hours" not in st.session_state:
     st.session_state.kb_retention_hours = 24
 
-#Sidebar Config
-
 api_key_ok = False
-debug = False
 
 with st.sidebar:
     st.header("Configuration")
 
-    # Loading API key
     if "GEMINI_API_KEY" in st.secrets:
         os.environ["GOOGLE_API_KEY"] = st.secrets["GEMINI_API_KEY"]
         st.success("Gemini API Key Loaded")
@@ -59,14 +53,7 @@ with st.sidebar:
     process_btn = st.button("Process Documents")
 
     st.divider()
-    st.header("Retention")
-    retention = st.number_input(
-        "KB retention (hours)",
-        min_value=1,
-        max_value=24 * 365,
-        value=st.session_state.kb_retention_hours,
-    )
-    st.session_state.kb_retention_hours = retention
+    st.caption("Knowledge is automatically forgotten after a short period for privacy.")
 
     if st.session_state.vectorstore:
         if st.button("Delete Knowledge Base"):
@@ -77,7 +64,6 @@ if not api_key_ok:
     st.info("Add your Gemini API key in .streamlit/secrets.toml to start using the app.")
     st.stop()
 
-#Auto Retention Expiry
 check_retention_expiry(st.session_state)
 
 if process_btn and uploaded_files:
@@ -100,19 +86,16 @@ if process_btn and uploaded_files:
 
             st.success(f"Indexed {len(sanitized)} sanitized knowledge chunks.")
 
-#Chat Interface
 if not st.session_state.vectorstore:
     st.info("Upload documents to start chatting!")
     st.stop()
 
 qa_chain = build_qa_chain(st.session_state.vectorstore)
 
-#Render chat history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-#Chat input
 if prompt := st.chat_input("Ask a question..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
@@ -131,7 +114,6 @@ if prompt := st.chat_input("Ask a question..."):
                         f"{doc.metadata.get('source','unknown')} | page {doc.metadata.get('page','?')} | id: {doc.metadata.get('doc_id', 'unknown')}"
                     )
                     st.text(doc.page_content[:200] + "...")
-
 
     st.session_state.messages.append(
         {"role": "assistant", "content": answer}
