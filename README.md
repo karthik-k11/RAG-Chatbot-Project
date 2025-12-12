@@ -10,10 +10,10 @@
 ## ✨ Key Features
 
 * **📄 Multi-Format Support:** Upload and process multiple `.pdf` or `.txt` files simultaneously.
-* **🤖 Advanced LLM Integration:** Powered by Google's **Gemini 1.5 Flash** (with fallback support for newer models).
+* **🤖 Advanced LLM Integration:** Powered by Google's **Gemini 2.5 Flash** (with fallback support for newer models).
 * **🔍 Vector Search:** Uses `HuggingFaceEmbeddings` (all-MiniLM-L6-v2) and `ChromaDB` for efficient semantic search.
 * **📚 Source Citation:** Every answer includes an expandable "View Sources" section, showing exactly which document and page text was used.
-* **🔒 Secure Processing:** Uses temporary directories for file processing to ensure no user data is permanently stored on the server.
+* **🔒 Privacy-Friendly:** Documents are processed in temporary storage and automatically forgotten after a short period.
 * **💬 Interactive Chat:** Familiar chat interface with session history.
 
 ## 🛠️ Installation & Setup
@@ -62,7 +62,7 @@ streamlit run app.py
 
 2. Upload Documents: Use the sidebar to upload PDFs or Text files.
 
-3. Process: Click "Process & Learn" to generate embeddings.
+3. Process: Click "Process Documents" to generate embeddings.
 
 4. Chat: Ask questions about the content of your documents!
 
