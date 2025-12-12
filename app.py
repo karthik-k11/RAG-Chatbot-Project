@@ -12,6 +12,7 @@ from RAG_Engine.Vectorstore import (
 )
 from RAG_Engine.qa import build_qa_chain
 
+#Streamlit App Configuration
 st.set_page_config(
     page_title="Gemini RAG Brain",
     page_icon="🧠",
