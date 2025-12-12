@@ -49,9 +49,6 @@ with st.sidebar:
     else:
         st.error("Missing `GEMINI_API_KEY` in .streamlit/secrets.toml")
 
-    #Optional debug toggle
-    debug = st.checkbox("Show debug info", value=False)
-
     st.divider()
     st.header("Document Upload")
     uploaded_files = st.file_uploader(
@@ -88,9 +85,6 @@ if process_btn and uploaded_files:
     with st.spinner("Loading and processing documents..."):
 
         raw_docs = load_uploaded_files(uploaded_files)
-
-        if debug:
-            st.write("DEBUG: loaded docs:", raw_docs)
 
         if not raw_docs:
             st.warning("No readable text found in uploaded files.")
