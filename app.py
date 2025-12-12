@@ -20,6 +20,7 @@ st.set_page_config(
 )
 st.title("🧠 Gemini RAG: Local Knowledge Engine")
 
+#Session State Initialization
 if "vectorstore" not in st.session_state:
     st.session_state.vectorstore = None
 
@@ -32,11 +33,13 @@ if "kb_created_at" not in st.session_state:
 if "kb_retention_hours" not in st.session_state:
     st.session_state.kb_retention_hours = 24
 
+#Sidebar Config
 api_key_ok = False
 
 with st.sidebar:
     st.header("Configuration")
 
+    #Loading API Key
     if "GEMINI_API_KEY" in st.secrets:
         os.environ["GOOGLE_API_KEY"] = st.secrets["GEMINI_API_KEY"]
         st.success("Gemini API Key Loaded")
@@ -65,8 +68,10 @@ if not api_key_ok:
     st.info("Add your Gemini API key in .streamlit/secrets.toml to start using the app.")
     st.stop()
 
+#Auto retention Expiry
 check_retention_expiry(st.session_state)
 
+#Process button logic
 if process_btn and uploaded_files:
 
     with st.spinner("Loading and processing documents..."):
@@ -87,16 +92,19 @@ if process_btn and uploaded_files:
 
             st.success(f"Indexed {len(sanitized)} sanitized knowledge chunks.")
 
+#Chat Interface
 if not st.session_state.vectorstore:
     st.info("Upload documents to start chatting!")
     st.stop()
 
 qa_chain = build_qa_chain(st.session_state.vectorstore)
 
+#Render Chat History
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
+#Chat Input
 if prompt := st.chat_input("Ask a question..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
