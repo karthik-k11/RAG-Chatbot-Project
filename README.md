@@ -11,11 +11,11 @@
 
 | 1. Application UI | 2. Document Processing |
 | ----------------- | ---------------------- |
-| ![Opening UI](screenshots/RAG-UI1.png) | ![Processing](screenshots/RAG-UI2.png) |
+| ![Opening UI](Screenshots/RAG-UI1.png) | ![Processing](Screenshots/RAG-UI2.png) |
 
 | 3. AI Response | 4. Source Citation |
 | -------------- | ------------------ |
-| ![Q&A](screenshots/RAG-UI3.png) | ![Sources](screenshots/RAG-UI4.png) |
+| ![Q&A](Screenshots/RAG-UI3.png) | ![Sources](Screenshots/RAG-UI4.png) |
 
 ## ✨ Key Features
 
