@@ -7,6 +7,16 @@
 
 **Gemini RAG Brain** is a Retrieval-Augmented Generation (RAG) application built with Streamlit and Google Gemini. It allows users to upload PDF or TXT documents and chat with them using natural language. The system retrieves relevant context from your documents to provide accurate, source-backed answers.
 
+## 📸 Screenshots
+
+| 1. Application UI | 2. Document Processing |
+| ----------------- | ---------------------- |
+| ![Opening UI](screenshots/RAG-UI1.png) | ![Processing](screenshots/RAG-UI2.png) |
+
+| 3. AI Response | 4. Source Citation |
+| -------------- | ------------------ |
+| ![Q&A](screenshots/RAG-UI3.png) | ![Sources](screenshots/RAG-UI4.png) |
+
 ## ✨ Key Features
 
 * **📄 Multi-Format Support:** Upload and process multiple `.pdf` or `.txt` files simultaneously.
