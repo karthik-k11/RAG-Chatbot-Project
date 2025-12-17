@@ -4,7 +4,7 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from .Privacy import redact, make_doc_id
 
-
+#Document Splitter
 def sanitize_documents(docs):
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = splitter.split_documents(docs)
